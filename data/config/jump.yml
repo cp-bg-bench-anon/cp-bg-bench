@@ -1,0 +1,32 @@
+# JUMP-CP (cpg0016) data-source config. See `tasks/merged_pipeline_plan.md` §2.
+samples:
+  - metadata_source: source_4
+  - metadata_source: source_2
+    metadata_plate: "1053601879"
+
+metadata_tables:
+  # plate/well are structural; compound/orf/crispr are annotation extras —
+  # any JCP2022 found in the latter three is merged into per-well rows
+  # (compound wins when the same JCP2022 is in multiple tables).
+  plate:    https://github.com/jump-cellpainting/datasets/raw/main/metadata/plate.csv.gz
+  well:     https://github.com/jump-cellpainting/datasets/raw/main/metadata/well.csv.gz
+  compound: https://github.com/jump-cellpainting/datasets/raw/main/metadata/compound.csv.gz
+  orf:      https://github.com/jump-cellpainting/datasets/raw/main/metadata/orf.csv.gz
+  crispr:   https://github.com/jump-cellpainting/datasets/raw/main/metadata/crispr.csv.gz
+
+channel_s3_keys: [s3_OrigDNA, s3_OrigAGP, s3_OrigER, s3_OrigMito, s3_OrigRNA]
+
+segmentation:
+  model: cpsam
+  channels_for_nucleus: [0]         # DNA
+  channels_for_cell:    [3, 0]      # AGP, DNA
+  default_diameters:
+    nucleus: 21
+    cytosol: 53
+  per_source_diameters:             # filled by `pixi run calibrate`
+    source_4:
+      nucleus: 25
+      cytosol: 69
+    source_2:
+      nucleus: 21
+      cytosol: 53

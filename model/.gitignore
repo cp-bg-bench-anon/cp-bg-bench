@@ -1,0 +1,13 @@
+.pixi/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+outputs/
+wandb/
+logs/
+*.egg-info/
+build/
+dist/
+.venv/
+uv.lock

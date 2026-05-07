@@ -1,0 +1,14 @@
+# @package _global_
+# RxRx1 | SubCell | ESM2 | crops
+defaults:
+  - override /model: gene_esm2
+  - override /datamodule: rxrx1
+  - _self_
+
+paths:
+  data: ${paths.root}/rxrx1_training/datasets/crops_resharded
+
+model:
+  litmodule:
+    image_encoder_name: subcell
+    image_size: 256

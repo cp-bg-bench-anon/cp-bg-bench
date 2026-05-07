@@ -1,0 +1,15 @@
+# @package _global_
+# RxRx1 | DINOv3 | ESM2 | seg
+defaults:
+  - override /model: gene_esm2
+  - override /datamodule: rxrx1
+  - _self_
+
+paths:
+  data: ${paths.root}/rxrx1_training/datasets/seg_resharded
+
+model:
+  litmodule:
+    image_encoder_name: dinov3
+    image_channelwise: true
+    image_size: 224

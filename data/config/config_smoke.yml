@@ -1,0 +1,51 @@
+# Global config for smoke runs. Points at `smoke.yml` (tiny JUMP subset)
+# so outputs land under `<paths.root>/smoke/`, separate from real JUMP runs.
+# Selection + sharding knobs shrunk to keep the pipeline under a few minutes.
+data_source: jump
+data_source_config: smoke.yml
+max_fovs_per_plate: 3
+
+paths:
+  root: ${DATA_ROOT}
+
+selection:
+  strategy: uniform_per_well
+  cells_per_well: 5
+  random_seed: 42
+
+quality_filter:
+  enabled: true
+  quantiles: [0.025, 0.975]
+  fields: [nuc_area, cyto_area, nuc_cyto_ratio]
+
+crops:
+  patch_size: 150
+  image_size: 224
+  normalization:
+    scheme: per_fov_percentile
+    low: 0.001
+    high: 0.999
+
+patching:
+  patch_size_resized: 22
+  pad_resized: 7
+
+sharding:
+  parquet_rows_per_shard: 10000
+  hf_rows_per_shard: 25000
+  hf_max_shards: 8
+  snakemake_batch_size: 50
+
+compute:
+  dask:
+    n_workers: 4
+    threads_per_worker: 1
+  gpu:
+    cellpose_vram_per_sample_mb: 200
+    resize_vram_mb_max: 16000
+    seg_fov_batch_size: 3
+
+calibrate:
+  fovs_per_source: 3
+  random_seed: 42
+  min_success_fraction: 0.7

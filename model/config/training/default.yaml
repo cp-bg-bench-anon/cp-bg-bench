@@ -1,0 +1,47 @@
+# conf/training/default.yaml
+lightning:
+  trainer:
+    _target_: pytorch_lightning.Trainer
+    _partial_: false
+    max_epochs: 25
+    enable_progress_bar: true
+    devices: 1
+    strategy: "auto"
+    precision: "bf16-mixed"
+    accelerator: "gpu"
+    gradient_clip_val: 5
+    sync_batchnorm: false               # only if using multi-GPU
+    accumulate_grad_batches: 1   # single-step; larger per-step batch gives more negatives
+
+    log_every_n_steps: ${logging.train_loss_every_n_steps}
+    check_val_every_n_epoch: 1
+
+train: true
+test: true
+predict: false
+
+callbacks:
+  best_ckpt:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: "val_R@1_I2P_macro"
+    mode: "max"
+    save_last: true
+    save_top_k: 3
+    dirpath: "${hydra:runtime.output_dir}/checkpoints"
+    filename: "epoch{epoch:02d}-step{step}-vR1macro{val_R@1_I2P_macro:.4f}"
+    auto_insert_metric_name: false
+    # No every_n_train_steps: ModelCheckpoint with monitor fires in on_validation_epoch_end,
+    # which runs AFTER val metrics are logged — correct timing. Explicit step-count would
+    # fire on on_train_batch_end (before val at that step), capturing a stale metric.
+
+  lr_monitor:
+    _target_: pytorch_lightning.callbacks.LearningRateMonitor
+    logging_interval: "step"
+
+  early_stopping:
+    _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: "val_R@1_I2P_macro"
+    mode: "max"
+    patience: 5                       # epochs of no improvement
+    min_delta: 1.0e-4                 # ignore noise < 0.01 pp between epochs
+    check_on_train_epoch_end: false   # fire after validation, not before

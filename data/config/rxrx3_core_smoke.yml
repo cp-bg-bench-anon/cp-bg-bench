@@ -1,0 +1,28 @@
+# Smoke data-source config: minimal RxRx3-core subset for verification runs.
+#
+# Scoped to one experiment + plate so rules A–B can be exercised quickly.
+# Outputs land under <paths.root>/rxrx3_core_smoke/ (named after this file's
+# stem) and never collide with production artifacts.
+
+samples:
+  - experiment: gene-001
+    plate: 1
+
+hf_repo: recursionpharma/rxrx3-core
+
+channel_names:
+  - Hoechst      # ch 1 — DNA / nucleus
+  - ConA         # ch 2 — ER
+  - Phalloidin   # ch 3 — AGP / actin
+  - Syto14       # ch 4 — RNA
+  - MitoTracker  # ch 5 — Mitochondria
+  - WGA          # ch 6 — AGP / plasma membrane
+
+segmentation:
+  model: cpsam
+  channels_for_nucleus: [0]
+  channels_for_cell:    [2, 0]
+  default_diameters:
+    nucleus: 21
+    cytosol: 53
+  per_source_diameters: {}

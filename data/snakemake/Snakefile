@@ -1,0 +1,126 @@
+"""Top-level Snakefile for the cp-bg-bench pipeline.
+
+Loads + validates the config at parse time so every rule has ``CONFIG``,
+``RESULTS`` (= ``CONFIG.output_root``), and ``LOGS`` available. Rule A
+(``resolve_metadata``) is a checkpoint; rule B (``download_batch``)
+expands its wildcard from rule A's parquet. Rule C (``calibrate``) is a
+manual rule not in the default DAG. Rules D–M implement the full
+crop-extraction and dataset-build pipeline.
+
+``rule all`` targets the four resharded dataset variants (crops, seg,
+crops_density, seg_density).  To run only a subset of the pipeline, specify
+an explicit target, e.g.::
+
+    snakemake segment_plate --wildcards plate_key=src__bat__plt
+"""
+from pathlib import Path
+
+import pandas as pd
+
+from cp_bg_bench.config import PipelineConfig, load as load_config
+
+if not workflow.configfiles:
+    raise RuntimeError(
+        "cp-bg-bench Snakefile requires --configfile (e.g. config/config.yml)"
+    )
+
+CONFIG: PipelineConfig = load_config(workflow.configfiles[0])
+RESULTS: Path = CONFIG.output_root
+WORKFLOW_ROOT: Path = Path(workflow.basedir).resolve().parent
+LOGS: Path = WORKFLOW_ROOT / "logs" / CONFIG.data_source_stem
+
+
+include: "rules/resolve_metadata.smk"
+include: "rules/download.smk"
+
+
+def _download_sentinels(wildcards):
+    """Enumerate all snakemake_batch sentinels from rule A's parquet.
+
+    Used by `rule all` and `calibrate` (which samples cross-source and
+    therefore genuinely needs every download to be complete first).
+    """
+    parquet = checkpoints.resolve_metadata.get().output.parquet
+    df = pd.read_parquet(parquet, columns=["snakemake_batch"])
+    batch_ids = sorted(df["snakemake_batch"].unique())
+    return [f"{RESULTS}/full_images/_batches/{b}.done" for b in batch_ids]
+
+
+# Module-level cache so the 1 000+ segment_fov_batch jobs don't each
+# re-read the parquet during DAG build (would stretch it from seconds
+# to minutes).
+_PARQUET_CACHE: dict[str, pd.DataFrame] = {}
+
+
+def _plate_download_sentinels(wildcards):
+    """Enumerate download sentinels for one plate only.
+
+    Lets segmentation of plate N start as soon as plate N's downloads
+    land, fully overlapping download and GPU work.  Uses the module-level
+    cache so the parquet is read once per DAG build regardless of how
+    many segment_fov_batch jobs exist.
+    """
+    parquet = checkpoints.resolve_metadata.get().output.parquet
+    if parquet not in _PARQUET_CACHE:
+        _PARQUET_CACHE[parquet] = pd.read_parquet(
+            parquet,
+            columns=["snakemake_batch", "Metadata_Source", "Metadata_Batch", "Metadata_Plate"],
+        )
+    df = _PARQUET_CACHE[parquet]
+    src, bat, plt = wildcards.plate_key.split("__", 2)
+    mask = (
+        (df["Metadata_Source"] == src)
+        & (df["Metadata_Batch"] == bat)
+        & (df["Metadata_Plate"] == plt)
+    )
+    batch_ids = sorted(df.loc[mask, "snakemake_batch"].unique())
+    return [f"{RESULTS}/full_images/_batches/{b}.done" for b in batch_ids]
+
+
+def _segment_sentinels(wildcards):
+    """Enumerate per-plate segment sentinels from rule A's parquet."""
+    parquet = checkpoints.resolve_metadata.get().output.parquet
+    df = pd.read_parquet(
+        parquet, columns=["Metadata_Source", "Metadata_Batch", "Metadata_Plate"]
+    )
+    plate_keys = sorted(
+        {
+            f"{r.Metadata_Source}__{r.Metadata_Batch}__{r.Metadata_Plate}"
+            for r in df.itertuples()
+        }
+    )
+    return [f"{RESULTS}/segmentation/_plates/{pk}.done" for pk in plate_keys]
+
+
+def _extract_sentinels(wildcards):
+    """Enumerate per-plate extract sentinels (same plate set as segment)."""
+    parquet = checkpoints.resolve_metadata.get().output.parquet
+    df = pd.read_parquet(
+        parquet, columns=["Metadata_Source", "Metadata_Batch", "Metadata_Plate"]
+    )
+    plate_keys = sorted(
+        {
+            f"{r.Metadata_Source}__{r.Metadata_Batch}__{r.Metadata_Plate}"
+            for r in df.itertuples()
+        }
+    )
+    return [f"{RESULTS}/crops_unfiltered/_plates/{pk}.done" for pk in plate_keys]
+
+
+_VARIANTS = ["crops", "seg", "crops_density", "seg_density"]
+
+include: "rules/calibrate.smk"
+include: "rules/segment.smk"
+include: "rules/select.smk"
+include: "rules/extract.smk"
+include: "rules/build_hf.smk"
+include: "rules/quality_filter.smk"
+include: "rules/derive_variants.smk"
+include: "rules/reshard.smk"
+include: "rules/visualize.smk"
+
+
+rule all:
+    input:
+        expand(f"{RESULTS}/datasets/{{variant}}_resharded.done", variant=_VARIANTS),
+        f"{RESULTS}/plots/visualize_sample.done",

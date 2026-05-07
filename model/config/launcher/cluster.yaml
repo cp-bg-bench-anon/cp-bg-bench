@@ -1,0 +1,20 @@
+# @package _global_
+#
+# SLURM launcher template. Override partition/qos/constraint to match your cluster.
+#   pixi run python scripts/train.py --multirun launcher=cluster \
+#     hydra.launcher.partition=YOUR_PARTITION \
+#     hydra.launcher.qos=YOUR_QOS \
+#     hydra.launcher.constraint=YOUR_GPU_CONSTRAINT
+
+defaults:
+  - override /hydra/launcher: submitit_slurm
+
+hydra:
+  launcher:
+    partition: gpu
+    qos: normal
+    cpus_per_task: 10
+    constraint: ""
+    gres: gpu:2
+    tasks_per_node: 2
+    array_parallelism: 10

@@ -1,0 +1,30 @@
+# Smoke data-source config: tiny JUMP subset for verification runs.
+#
+# Same schema as `jump.yml` (JumpConfig); deliberately scoped to one plate
+# so the full pipeline can be exercised in minutes. Outputs land under
+# `<paths.root>/smoke/` (named after this file's stem) so they never
+# collide with production artifacts under `<paths.root>/jump/`.
+samples:
+  - metadata_source: source_2
+    metadata_plate: "1053601756"
+
+metadata_tables:
+  plate:    https://github.com/jump-cellpainting/datasets/raw/main/metadata/plate.csv.gz
+  well:     https://github.com/jump-cellpainting/datasets/raw/main/metadata/well.csv.gz
+  compound: https://github.com/jump-cellpainting/datasets/raw/main/metadata/compound.csv.gz
+  orf:      https://github.com/jump-cellpainting/datasets/raw/main/metadata/orf.csv.gz
+  crispr:   https://github.com/jump-cellpainting/datasets/raw/main/metadata/crispr.csv.gz
+
+channel_s3_keys: [s3_OrigDNA, s3_OrigAGP, s3_OrigER, s3_OrigMito, s3_OrigRNA]
+
+segmentation:
+  model: cpsam
+  channels_for_nucleus: [0]         # DNA
+  channels_for_cell:    [3, 0]      # AGP, DNA
+  default_diameters:
+    nucleus: 21
+    cytosol: 53
+  per_source_diameters:
+    source_2:
+      nucleus: 21
+      cytosol: 53

@@ -1,0 +1,15 @@
+# @package _global_
+# JUMP | OpenPhenom | ECFP4 | seg
+defaults:
+  - override /model: ecfp_cached
+  - override /datamodule: jump
+  - _self_
+
+paths:
+  data: ${paths.root}/jump_training/datasets/seg_resharded
+
+model:
+  litmodule:
+    image_encoder_name: openphenom
+    image_channelwise: false
+    image_size: 256

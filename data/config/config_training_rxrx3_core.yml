@@ -1,0 +1,57 @@
+# Global config for the RxRx3-core HUVEC CRISPR KO training set (rxrx3_training.yml).
+# 736 KO genes × 6 guides × 176 experiments; EMPTY_control treated as a regular
+# gene (not listed in control_labels) to cap it at target_cells=200/pair.
+# Rule E yields ~2,547 treatment pairs × 200 = 509,400 treatment cells +
+# 176 control pairs × 200 = 35,200 control cells → ~545k total.
+# Outputs land under <paths.root>/rxrx3_training/.
+data_source: rxrx3_core
+data_source_config: rxrx3_training.yml
+max_fovs_per_well: 1  # rxrx3_core has exactly 1 site/well — effectively no-op
+
+paths:
+  root: ${DATA_ROOT}
+
+selection:
+  strategy: uniform_per_compound_source
+  target_cells: 200
+  control_labels: []  # treat EMPTY_control as a regular gene — avoids ~1.27M uncapped control cells
+  random_seed: 42
+
+quality_filter:
+  enabled: true
+  quantiles: [0.025, 0.975]
+  fields: [nuc_area, cyto_area, nuc_cyto_ratio]
+
+crops:
+  patch_size: 150
+  image_size: 224
+  normalization:
+    scheme: per_fov_percentile
+    low: 0.001
+    high: 0.999
+
+patching:
+  patch_size_resized: 22
+  pad_resized: 7
+
+sharding:
+  parquet_rows_per_shard: 10000
+  hf_rows_per_shard: 25000
+  hf_max_shards: 64
+  snakemake_batch_size: 250
+
+compute:
+  dask:
+    n_workers: 16
+    threads_per_worker: 1
+  gpu:
+    # Same VRAM envelope as rxrx1: 512×512 × 6ch uint16 FOVs.
+    # 380 × 70 MB = 26,600 MB/job → floor(80,000 / 26,600) = 3 concurrent on A100-80GB.
+    cellpose_vram_per_sample_mb: 70
+    resize_vram_mb_max: 32000
+    seg_fov_batch_size: 380
+
+calibrate:
+  fovs_per_source: 12
+  random_seed: 42
+  min_success_fraction: 0.7

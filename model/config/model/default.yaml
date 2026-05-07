@@ -1,0 +1,56 @@
+litmodule:
+  _target_: cp_bg_bench_model.models.models.PretrainModule
+  _partial_: true
+
+  # --- universal knobs ---
+  embed_dim: 128
+  loss: CLIP_multi
+  temperature: 0.1
+
+  # Image Encoder
+  image_encoder_name: "dinov3"
+  image_channelwise: true
+  image_size: 224
+  in_channels: 5  # 5 = JUMP, 6 = Rxrx1
+  image_encoder_channel_names: ${datamodule.channel_names}
+
+  # Perturbation Encoder
+  perturbation_encoder_name: "precomputed"
+  perturbation_embedding_column: "multi_radii"
+  perturbation_head: "mlp"
+  perturbation_head_dropout: 0.2
+  precomputed_in_dim: null  # null for lazy inference
+
+  # --- optim / trainer integration ---
+  lr: ${model.optimizer.lr}
+  weight_decay: ${model.optimizer.weight_decay}
+  strategy: ${training.lightning.trainer.strategy}
+
+  # LoRA adapters
+  image_lora:
+    enabled: true
+    r: 8
+    alpha: 16
+    dropout: 0.1
+    bias: "none"
+    task_type: "FEATURE_EXTRACTION"
+
+  perturbation_lora:
+    enabled: false
+
+  freeze_backbone_when_no_lora: true
+
+optimizer:
+  lr: 0.0003
+  weight_decay: 0.0005
+  lr_head: 0.0003
+  lr_lora: 0.0001
+
+# Cosine LR schedule knobs. Total steps (= max_epochs × steps_per_epoch)
+# are resolved at runtime via trainer.estimated_stepping_batches, so they
+# don't need to appear here.
+lr_schedule:
+  warmup_frac: 0.1
+  num_cycles: 0.5
+
+monitor: "val_loss_epoch"

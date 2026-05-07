@@ -1,0 +1,18 @@
+defaults:
+  - default
+
+# Microscopy channel order in the source tensor — identical to RxRx1.
+# Source: RxRx3-core dataset card (Hoechst/ConA/Phalloidin/Syto14/MitoTracker/WGA)
+channel_names: [DNA, ER, AGP_actin, RNA, Mito, AGP_membrane]
+
+dataset_path: ${paths.data}
+# Control wells carry "EMPTY" — pin them to every batch.
+control_perturbation_keys: [EMPTY]
+# batch = plate_N (1-9); split_by_column: batch (default) holds out 1 plate for val.
+test_frac: 0.0
+
+# Always keep EMPTY (negative controls) in TRAIN.
+always_train_groups: ["EMPTY"]
+
+# Compound-based batching keyed on CRISPR gene target
+perturbations_per_batch: 64

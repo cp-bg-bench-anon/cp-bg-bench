@@ -1,0 +1,8 @@
+# Per-machine symlink to ${DATA_ROOT}; absolute path,
+# not portable. Each machine recreates it via:
+#   ln -sfn ${DATA_ROOT}/results/embeddings data
+/data
+
+# Large intermediate artefacts produced by the cp_measure baseline pipeline.
+baselines/_data/
+baselines/_logs/

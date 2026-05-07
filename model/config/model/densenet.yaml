@@ -1,0 +1,7 @@
+defaults:
+  - default
+
+litmodule:
+  image_encoder_name: "densenet"
+  image_channelwise: false
+  image_size: 224

@@ -1,0 +1,7 @@
+defaults:
+  - default
+
+litmodule:
+  perturbation_encoder_name: "ecfp_cached"
+  fingerprint_path: "${paths.root}/jump_training/meta/ecfp4_fingerprints.parquet"
+  key_column: "Metadata_InChIKey"

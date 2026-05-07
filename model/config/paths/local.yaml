@@ -1,0 +1,7 @@
+# cp-bg-bench convention: ${paths.root}/<data_source_stem>/...
+root: ${DATA_ROOT}
+data: ${paths.root}/jump/training/crops
+output: ${paths.root}/results
+repo_root: ${WORKSPACE}
+model_root: ${paths.repo_root}/model
+meta: ${paths.repo_root}/data/data/meta

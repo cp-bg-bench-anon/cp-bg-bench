@@ -1,0 +1,50 @@
+[project]
+name = "cp-bg-bench-model"
+version = "0.1.0"
+description = "Image+molecule contrastive fine-tuning for the cp-bg-bench corpus."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = ["Anonymous <anon@example.invalid>"]
+
+dependencies = [
+    "scikit-fingerprints>=1.17.0,<2",
+    "open-clip-torch>=3.1.0,<4",
+    "timm>=1.0.19,<2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cp_bg_bench_model"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "BLE"]
+ignore = [
+    "E501",  # line length handled by formatter
+    "E402",  # module-level imports not at top (deliberate post-config imports)
+    "E702",  # one-line `if v in env: x = ...; break` patterns
+    "E731",  # lambda assignments
+    "E741",  # ambient `l` / `I` allowed
+    "F401",  # unused imports tolerated for re-exports
+    "B006",  # mutable defaults (deliberate in encoder factories)
+    "B008",  # function calls in default args (Hydra patterns)
+    "B009",  # getattr with constant attr name
+    "B010",  # setattr with constant attr name
+    "B024",  # ABC without abstract methods
+    "BLE001",  # blind `except Exception` (intentional defensive catches)
+]
+unfixable = ["B", "C4", "BLE"]
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

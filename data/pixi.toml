@@ -1,0 +1,147 @@
+[workspace]
+name = "cp-bg-bench"
+channels = ["conda-forge", "bioconda", "nvidia", "pytorch"]
+platforms = ["linux-64"]
+
+# Cluster probe (Apr 2026): NVIDIA A100 MIG, CUDA driver 12.9.
+# Required so the conda solver can satisfy __cuda virtual-package deps
+# in the gpu / seg-gpu features.
+[system-requirements]
+cuda = "12.9"
+
+[dependencies]
+python = ">=3.11"
+snakemake = ">=8,<9"
+pydantic = ">=2"
+pyyaml = "*"
+pandas = "*"
+pyarrow = "*"
+tqdm = "*"
+
+[pypi-dependencies]
+cp-bg-bench = { path = ".", editable = true }
+
+[feature.io.dependencies]
+boto3 = "*"
+aiobotocore = "*"
+tifffile = "*"
+pillow = "*"
+zarr = ">=3"
+numcodecs = "*"
+fastparquet = "*"
+pandarallel = "*"
+lamin_utils = "*"
+
+[feature.io.pypi-dependencies]
+remotezip = ">=0.12"
+huggingface_hub = "*"
+
+[feature.gpu.dependencies]
+# Cluster probe (Apr 2026): NVIDIA A100 MIG, CUDA driver 12.9.
+# Build constraint forces the conda-forge CUDA variant over the cpu_mkl default.
+pytorch = { version = ">=2", build = "*cuda*" }
+cellpose = ">=4"
+opencv = "*"
+cupy = "*"
+zarr = ">=3"
+lamin_utils = "*"
+
+[feature.seg-cpu.dependencies]
+# CPU-only Cellpose for calibrate rule (runs on login / CPU nodes).
+cellpose = ">=4"
+pytorch = ">=2"
+opencv = "*"
+zarr = ">=3"
+numcodecs = "*"
+matplotlib = "*"
+lamin_utils = "*"
+
+[feature.seg-gpu.dependencies]
+# GPU Cellpose for calibrate-gpu / rule D (GPU compute nodes).
+# Cluster probe (Apr 2026): NVIDIA A100 MIG, CUDA driver 12.9.
+# Build constraint forces the conda-forge CUDA variant over the cpu_mkl default.
+cellpose = ">=4"
+pytorch = { version = ">=2", build = "*cuda*" }
+cupy = "*"
+opencv = "*"
+zarr = ">=3"
+numcodecs = "*"
+matplotlib = "*"
+lamin_utils = "*"
+
+[feature.hf.dependencies]
+datasets = "*"
+dask = "*"
+distributed = "*"
+zarr = ">=3"
+scipy = "*"
+lamin_utils = "*"
+matplotlib = "*"
+
+[feature.dev.dependencies]
+pytest = "*"
+ruff = "*"
+mypy = "*"
+
+[environments]
+io = ["io"]
+gpu = ["gpu"]
+hf = ["hf"]
+seg-cpu = ["seg-cpu"]
+seg-gpu = ["seg-gpu", "io", "hf"]
+gene-map = ["gene-map"]
+default = ["io", "hf", "dev"]
+full = ["io", "gpu", "hf", "dev"]
+
+[tasks]
+dryrun = "snakemake -n --snakefile snakemake/Snakefile --configfile config/config.yml"
+run = "snakemake --snakefile snakemake/Snakefile --configfile config/config.yml --profile snakemake/profile/local"
+smoke = "snakemake --snakefile snakemake/Snakefile --configfile config/config_smoke.yml --profile snakemake/profile/local"
+test = "pytest tests/"
+lint = "ruff check src tests"
+fmt = "ruff format src tests"
+fmt-check = "ruff format --check src tests"
+check = { depends-on = ["lint", "fmt-check", "test"] }
+unlock = "snakemake --unlock --snakefile snakemake/Snakefile --configfile config/config.yml"
+# Run rules E–M via the default (hf) environment
+select = "snakemake select_cells --snakefile snakemake/Snakefile --configfile config/config.yml --profile snakemake/profile/local"
+select-smoke = "snakemake select_cells --snakefile snakemake/Snakefile --configfile config/config_smoke.yml --profile snakemake/profile/local"
+
+[feature.seg-cpu.tasks]
+# Run as: pixi run -e seg-cpu calibrate  (or calibrate-smoke for the smoke config)
+calibrate = "snakemake calibrate --snakefile snakemake/Snakefile --configfile config/config.yml --profile snakemake/profile/local"
+calibrate-smoke = "snakemake calibrate --snakefile snakemake/Snakefile --configfile config/config_smoke.yml --profile snakemake/profile/local"
+# Run as: pixi run -e seg-cpu segment-smoke  (segments all plates, smoke config)
+segment = "snakemake --snakefile snakemake/Snakefile --configfile config/config.yml --profile snakemake/profile/local"
+segment-smoke = "snakemake --snakefile snakemake/Snakefile --configfile config/config_smoke.yml --profile snakemake/profile/local"
+
+[feature.seg-gpu.tasks]
+# Run as: pixi run -e seg-gpu calibrate-gpu  (GPU compute nodes)
+calibrate-gpu = "snakemake calibrate --snakefile snakemake/Snakefile --configfile config/config.yml --profile snakemake/profile/local"
+calibrate-gpu-smoke = "snakemake calibrate --snakefile snakemake/Snakefile --configfile config/config_smoke.yml --profile snakemake/profile/local"
+# Run as: pixi run -e seg-gpu segment-gpu-smoke  (GPU compute nodes, segments all plates)
+segment-gpu = "snakemake --snakefile snakemake/Snakefile --configfile config/config.yml --profile snakemake/profile/local"
+segment-gpu-smoke = "snakemake --snakefile snakemake/Snakefile --configfile config/config_smoke.yml --profile snakemake/profile/local"
+smoke-rxrx1 = "snakemake --snakefile snakemake/Snakefile --configfile config/config_smoke_rxrx1.yml --profile snakemake/profile/local"
+
+# ── gene-map feature ─────────────────────────────────────────────────────────
+# Lightweight CPU environment for:
+#   1. Mapping rxrx1 siRNA catalog IDs → HGNC gene symbols (via ThermoFisher API + NCBI fallback)
+#   2. Fetching canonical UniProt protein sequences for each gene (for ESM2 embedding)
+#
+# Usage:
+#   pixi run -e gene-map resolve-sirna   # step 1: siRNA → gene table
+#   pixi run -e gene-map fetch-sequences # step 2: gene → FASTA
+#
+[feature.gene-map.dependencies]
+biopython = ">=1.84"
+bioservices = ">=1.11"
+requests = ">=2.32"
+tqdm = ">=4"
+playwright = ">=1.45"
+
+[feature.gene-map.tasks]
+install-browsers = "playwright install chromium"
+resolve-sirna   = "python scripts/resolve_sirna_genes.py"
+fetch-sequences = "python scripts/fetch_gene_sequences.py"
+smoke-rxrx3-core = "snakemake --snakefile snakemake/Snakefile --configfile config/config_smoke_rxrx3_core.yml --profile snakemake/profile/local"

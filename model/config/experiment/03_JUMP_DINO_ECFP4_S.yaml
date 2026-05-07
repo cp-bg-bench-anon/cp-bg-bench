@@ -1,0 +1,15 @@
+# @package _global_
+# JUMP | DINOv3 | ECFP4 | seg
+defaults:
+  - override /model: ecfp_cached
+  - override /datamodule: jump
+  - _self_
+
+paths:
+  data: ${paths.root}/jump_training/datasets/seg_resharded
+
+model:
+  litmodule:
+    image_encoder_name: dinov3
+    image_channelwise: true
+    image_size: 224

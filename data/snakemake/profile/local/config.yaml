@@ -1,0 +1,13 @@
+# Local Snakemake profile for `pixi run run` / `pixi run smoke`.
+# Iteration 1: safe defaults; tightened as rules land.
+cores: 28
+use-conda: false
+printshellcmds: true
+keep-going: false
+rerun-incomplete: true
+show-failed-logs: true
+latency-wait: 30
+# GPU memory budget — caps concurrent segment_fov_batch jobs.
+# H100-80GB / A100-80GB: gpu_mem_mb=80000 → floor(80000 / (380*70)) = 3 concurrent.
+# MIG-20GB slice: lower this to 20000 and reduce seg_fov_batch_size to 100.
+resources: gpu_mem_mb=80000

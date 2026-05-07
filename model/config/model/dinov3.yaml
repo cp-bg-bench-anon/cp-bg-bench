@@ -1,0 +1,7 @@
+defaults:
+  - default
+
+litmodule:
+  image_encoder_name: "dinov3"
+  image_channelwise: true
+  image_size: 224

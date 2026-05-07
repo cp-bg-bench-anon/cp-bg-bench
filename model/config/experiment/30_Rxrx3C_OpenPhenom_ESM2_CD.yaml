@@ -1,0 +1,15 @@
+# @package _global_
+# RxRx3C | OpenPhenom | ESM2 | crops_density
+defaults:
+  - override /model: gene_esm2
+  - override /datamodule: rxrx3c
+  - _self_
+
+paths:
+  data: ${paths.root}/rxrx3c/training/crops_density
+
+model:
+  litmodule:
+    image_encoder_name: openphenom
+    image_channelwise: false
+    image_size: 256

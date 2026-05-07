@@ -1,0 +1,13 @@
+defaults:
+  - default
+
+litmodule:
+  image_encoder_name: dinov3
+  image_channelwise: true
+  image_size: 224
+  in_channels: 6
+  perturbation_encoder_name: gene_lookup
+  fingerprint_path: ${paths.model_root}/gene_embeddings/esm2_1280.parquet
+  embedding_column: esm2_1280
+  control_key: EMPTY
+  embed_dim: 128

@@ -1,0 +1,8 @@
+defaults:
+  - default
+
+# Microscopy channel order in the source tensor.
+# Source: data/config/jump.yml:channel_s3_keys
+# [s3_OrigDNA, s3_OrigAGP, s3_OrigER, s3_OrigMito, s3_OrigRNA]
+channel_names: [DNA, AGP, ER, Mito, RNA]
+control_perturbation_keys: ["IAZDPXIOMUYVGZ-UHFFFAOYSA-N"]  # DMSO

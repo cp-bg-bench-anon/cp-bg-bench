@@ -1,0 +1,38 @@
+_target_: cp_bg_bench_model.datamodule.ImageMoleculeDataModule
+dataset_path: ${paths.data}
+image_encoder_name: ${model.litmodule.image_encoder_name}
+perturbation_encoder_name: ${model.litmodule.perturbation_encoder_name}
+perturbation_embedding_column: ${model.litmodule.perturbation_embedding_column}
+in_channels: ${model.litmodule.in_channels}
+image_size: ${model.litmodule.image_size}
+# Actual pixel size stored in the parquet blobs. Decoder validates against this;
+# a resize to image_size is inserted automatically when they differ.
+data_image_size: 224
+
+batch_size: 512
+num_workers: 28
+seed: 42
+augment: true
+perturbations_per_batch: 64  # 512 / 64 = 8 samples per perturbation
+
+# Split by source batch (Metadata_Source for JUMP, plate for RxRx datasets)
+split_by_column: batch
+
+test_frac: 0.0
+val_frac: 0.1
+
+# Always keep negative-control perturbations in TRAIN (references perturbation column)
+# JUMP: DMSO InChIKey; overridden per dataset.
+always_train_groups: [
+  "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",  # DMSO
+]
+
+# No source-level stratification for mini-batches (compound-level is handled by PerturbationBatchSampler)
+stratify_by_column: null
+
+# Within each perturbation, draw samples evenly across experimental batches.
+perturbation_stratify_by_column: ${datamodule.split_by_column}
+
+# Per-channel names in source-tensor order; used by SubCellEncoder to derive
+# channel-slot assignments. null means no dataset-specific mapping is declared.
+channel_names: null

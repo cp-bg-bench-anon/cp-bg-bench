@@ -1,0 +1,15 @@
+# @package _global_
+# RxRx3C | DINOv3 | ESM2 | crops
+defaults:
+  - override /model: gene_esm2
+  - override /datamodule: rxrx3c
+  - _self_
+
+paths:
+  data: ${paths.root}/rxrx3c/training/crops
+
+model:
+  litmodule:
+    image_encoder_name: dinov3
+    image_channelwise: true
+    image_size: 224

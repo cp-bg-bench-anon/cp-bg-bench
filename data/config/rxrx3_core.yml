@@ -1,0 +1,202 @@
+# RxRx3-core production data-source config: all 176 CRISPR KO experiments.
+#
+# 176 experiments × 9 plates × ~721 CRISPR wells/plate = ~126,900 FOVs total.
+# Outputs land under <paths.root>/rxrx3_core/ when used with a global config
+# that sets data_source_config: rxrx3_core.yml.
+
+samples:
+  - experiment: gene-001
+  - experiment: gene-002
+  - experiment: gene-003
+  - experiment: gene-004
+  - experiment: gene-005
+  - experiment: gene-006
+  - experiment: gene-007
+  - experiment: gene-008
+  - experiment: gene-009
+  - experiment: gene-010
+  - experiment: gene-011
+  - experiment: gene-012
+  - experiment: gene-013
+  - experiment: gene-014
+  - experiment: gene-015
+  - experiment: gene-016
+  - experiment: gene-017
+  - experiment: gene-018
+  - experiment: gene-019
+  - experiment: gene-020
+  - experiment: gene-021
+  - experiment: gene-022
+  - experiment: gene-023
+  - experiment: gene-024
+  - experiment: gene-025
+  - experiment: gene-026
+  - experiment: gene-027
+  - experiment: gene-028
+  - experiment: gene-029
+  - experiment: gene-030
+  - experiment: gene-031
+  - experiment: gene-032
+  - experiment: gene-033
+  - experiment: gene-034
+  - experiment: gene-035
+  - experiment: gene-036
+  - experiment: gene-037
+  - experiment: gene-038
+  - experiment: gene-039
+  - experiment: gene-040
+  - experiment: gene-041
+  - experiment: gene-042
+  - experiment: gene-043
+  - experiment: gene-044
+  - experiment: gene-045
+  - experiment: gene-046
+  - experiment: gene-047
+  - experiment: gene-048
+  - experiment: gene-049
+  - experiment: gene-050
+  - experiment: gene-051
+  - experiment: gene-052
+  - experiment: gene-053
+  - experiment: gene-054
+  - experiment: gene-055
+  - experiment: gene-056
+  - experiment: gene-057
+  - experiment: gene-058
+  - experiment: gene-059
+  - experiment: gene-060
+  - experiment: gene-061
+  - experiment: gene-062
+  - experiment: gene-063
+  - experiment: gene-064
+  - experiment: gene-065
+  - experiment: gene-066
+  - experiment: gene-067
+  - experiment: gene-068
+  - experiment: gene-069
+  - experiment: gene-070
+  - experiment: gene-071
+  - experiment: gene-072
+  - experiment: gene-073
+  - experiment: gene-074
+  - experiment: gene-075
+  - experiment: gene-076
+  - experiment: gene-077
+  - experiment: gene-078
+  - experiment: gene-079
+  - experiment: gene-080
+  - experiment: gene-081
+  - experiment: gene-082
+  - experiment: gene-083
+  - experiment: gene-084
+  - experiment: gene-085
+  - experiment: gene-086
+  - experiment: gene-087
+  - experiment: gene-088
+  - experiment: gene-089
+  - experiment: gene-090
+  - experiment: gene-091
+  - experiment: gene-092
+  - experiment: gene-093
+  - experiment: gene-094
+  - experiment: gene-095
+  - experiment: gene-096
+  - experiment: gene-097
+  - experiment: gene-098
+  - experiment: gene-099
+  - experiment: gene-100
+  - experiment: gene-101
+  - experiment: gene-102
+  - experiment: gene-103
+  - experiment: gene-104
+  - experiment: gene-105
+  - experiment: gene-106
+  - experiment: gene-107
+  - experiment: gene-108
+  - experiment: gene-109
+  - experiment: gene-110
+  - experiment: gene-111
+  - experiment: gene-112
+  - experiment: gene-113
+  - experiment: gene-114
+  - experiment: gene-115
+  - experiment: gene-116
+  - experiment: gene-117
+  - experiment: gene-118
+  - experiment: gene-119
+  - experiment: gene-120
+  - experiment: gene-121
+  - experiment: gene-122
+  - experiment: gene-123
+  - experiment: gene-124
+  - experiment: gene-125
+  - experiment: gene-126
+  - experiment: gene-127
+  - experiment: gene-128
+  - experiment: gene-129
+  - experiment: gene-130
+  - experiment: gene-131
+  - experiment: gene-132
+  - experiment: gene-133
+  - experiment: gene-134
+  - experiment: gene-135
+  - experiment: gene-136
+  - experiment: gene-137
+  - experiment: gene-138
+  - experiment: gene-139
+  - experiment: gene-140
+  - experiment: gene-141
+  - experiment: gene-142
+  - experiment: gene-143
+  - experiment: gene-144
+  - experiment: gene-145
+  - experiment: gene-146
+  - experiment: gene-147
+  - experiment: gene-148
+  - experiment: gene-149
+  - experiment: gene-150
+  - experiment: gene-151
+  - experiment: gene-152
+  - experiment: gene-153
+  - experiment: gene-154
+  - experiment: gene-155
+  - experiment: gene-156
+  - experiment: gene-157
+  - experiment: gene-158
+  - experiment: gene-159
+  - experiment: gene-160
+  - experiment: gene-161
+  - experiment: gene-162
+  - experiment: gene-163
+  - experiment: gene-164
+  - experiment: gene-165
+  - experiment: gene-166
+  - experiment: gene-167
+  - experiment: gene-168
+  - experiment: gene-169
+  - experiment: gene-170
+  - experiment: gene-171
+  - experiment: gene-172
+  - experiment: gene-173
+  - experiment: gene-174
+  - experiment: gene-175
+  - experiment: gene-176
+hf_repo: recursionpharma/rxrx3-core
+
+channel_names:
+  - Hoechst      # ch 1 — DNA / nucleus
+  - ConA         # ch 2 — ER
+  - Phalloidin   # ch 3 — AGP / actin
+  - Syto14       # ch 4 — RNA
+  - MitoTracker  # ch 5 — Mitochondria
+  - WGA          # ch 6 — AGP / plasma membrane
+
+segmentation:
+  model: cpsam
+  channels_for_nucleus: [0]
+  channels_for_cell:    [2, 0]
+  default_diameters:
+    nucleus: 21
+    cytosol: 53
+  per_source_diameters: {}
+

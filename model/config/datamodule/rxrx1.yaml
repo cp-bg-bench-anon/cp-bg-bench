@@ -1,0 +1,21 @@
+defaults:
+  - default
+
+# Microscopy channel order in the source tensor.
+# Source: RxRx1 dataset card (Hoechst/ConA/Phalloidin/Syto14/MitoTracker/WGA)
+channel_names: [DNA, ER, AGP_actin, RNA, Mito, AGP_membrane]
+
+dataset_path: ${paths.data}
+# Control wells carry "EMPTY" — pin them to every batch; encoder uses mean gene embedding.
+control_perturbation_keys: [EMPTY]
+# Split by experiment (HEPG2-01..11) so one full imaging batch is held out.
+# Pipeline writes batch=source; this override is kept for already-extracted crops
+# (batch=plate_N in those) and is harmless once crops are re-extracted.
+split_by_column: source
+test_frac: 0.0
+
+# Always keep EMPTY (negative controls) in TRAIN regardless of plate assignment.
+always_train_groups: ["EMPTY"]
+
+# Compound-based batching keyed on gene target
+perturbations_per_batch: 64

@@ -1,0 +1,25 @@
+# ---- high-level switches ----
+enable_csv: false
+enable_wandb: true
+disable_local_disk: true
+allow_checkpoints: true
+
+# Per-step train loss cadence (also drives trainer.log_every_n_steps).
+# Retrieval metrics (train_R@K, val_R@K) are computed only at epoch end.
+train_loss_every_n_steps: 50
+log_test_during_val: false
+
+# WandB settings
+wandb:
+  project: "cp-bg-bench-model"
+  name: null
+  env:
+    WANDB_DIR: "/dev/shm/${oc.env:USER,unknown}/wandb"
+    WANDB_START_METHOD: "thread"
+    WANDB_MODE: "online"
+
+# CSV logger settings (used only if enable_csv: true)
+csv:
+  save_dir: "${paths.output}/csv_logger"
+  name: ""
+  prefix: ""

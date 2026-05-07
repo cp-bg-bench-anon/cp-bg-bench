@@ -1,0 +1,54 @@
+# Global pipeline config for the full JUMP training run.
+# Tuned for 3 concurrent seg jobs on H100-80GB (or A100-80GB, where compute
+# saturates at 2 concurrent so the 3rd adds no throughput).
+# See tasks/lessons.md — "Measured cellpose-SAM VRAM on a full A100-80GB".
+data_source: jump
+data_source_config: jump_training.yml
+
+paths:
+  # Update to your local data root (e.g. export CP_BG_BENCH_ROOT=/path/to/data).
+  root: ${DATA_ROOT}
+
+selection:
+  strategy: uniform_per_compound_source
+  target_cells: 100
+  random_seed: 42
+
+quality_filter:
+  enabled: true
+  quantiles: [0.025, 0.975]
+  fields: [nuc_area, cyto_area, nuc_cyto_ratio]
+
+crops:
+  patch_size: 150
+  image_size: 224
+  normalization:
+    scheme: per_fov_percentile
+    low: 0.001
+    high: 0.999
+
+patching:
+  patch_size_resized: 22
+  pad_resized: 7
+
+sharding:
+  parquet_rows_per_shard: 10000
+  hf_rows_per_shard: 25000
+  hf_max_shards: 64
+  snakemake_batch_size: 250
+
+compute:
+  dask:
+    n_workers: 16
+    threads_per_worker: 1
+  gpu:
+    # Measured on full A100-80GB PCIe at batch=400: ~9.4 MB/FOV (~3.76 GB total).
+    # 70 MB/sample × 380 batch = 26.6 GB budget → floor(80 GB / 26.6 GB) = 3 concurrent jobs.
+    cellpose_vram_per_sample_mb: 70
+    resize_vram_mb_max: 32000
+    seg_fov_batch_size: 380
+
+calibrate:
+  fovs_per_source: 12
+  random_seed: 42
+  min_success_fraction: 0.7

@@ -1,0 +1,50 @@
+# Global config for the TARGET2 compound subset (jump_target2.yml).
+# 302 compounds × 3 wells each. Outputs land under <paths.root>/jump_target2/.
+data_source: jump
+data_source_config: jump_target2.yml
+max_fovs_per_well: 3
+
+paths:
+  root: ${DATA_ROOT}
+
+selection:
+  strategy: uniform_total
+  max_cells: 300              # up to 300 cells per compound well
+  random_seed: 42
+
+quality_filter:
+  enabled: true
+  quantiles: [0.025, 0.975]
+  fields: [nuc_area, cyto_area, nuc_cyto_ratio]
+
+crops:
+  patch_size: 150
+  image_size: 224
+  normalization:
+    scheme: per_fov_percentile
+    low: 0.001
+    high: 0.999
+
+patching:
+  patch_size_resized: 22
+  pad_resized: 7
+
+sharding:
+  parquet_rows_per_shard: 10000
+  hf_rows_per_shard: 25000
+  hf_max_shards: 64
+  snakemake_batch_size: 250
+
+compute:
+  dask:
+    n_workers: 16
+    threads_per_worker: 1
+  gpu:
+    cellpose_vram_per_sample_mb: 200
+    resize_vram_mb_max: 32000
+    seg_fov_batch_size: 50
+
+calibrate:
+  fovs_per_source: 12
+  random_seed: 42
+  min_success_fraction: 0.7

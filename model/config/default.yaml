@@ -1,0 +1,40 @@
+# @package _global_
+
+defaults:
+  - datamodule: default
+  - model: default
+  - training: default
+  - logging: default
+  - paths: local
+  - data: crops
+  - launcher: local
+  - experiment: null   # optional; override with experiment=<name> (no + needed)
+  - _self_
+
+name: pretrain
+
+training:
+  lightning:
+    trainer:
+      max_epochs: 25
+  logger:
+    wandb:
+      project: "cp-bg-bench-model"
+
+model:
+  litmodule:
+    temperature: 0.1
+
+hydra:
+  job:
+    name: pretrain
+    chdir: true
+  run:
+    dir: ${paths.output}/${name}/${hydra:runtime.choices.experiment}_${now:%Y%m%d%H%M}
+  sweep:
+    dir: ${paths.output}/${name}/multirun/${now:%Y%m%d_%H%M%S}
+    subdir: ${hydra.job.num}_${hydra.job.override_dirname}
+  sweeper:
+    params:
+      model.litmodule.loss: SIGLIP_multi
+      datamodule.seed: 2202

@@ -1,0 +1,34 @@
+# Rxrx1 (Recursion Pharmaceuticals) data-source config.
+# Validated against live GCS endpoints April 2026.
+#
+# Metadata zip (~1 MB): contains rxrx1/metadata.csv
+# Images zip (~47 GB): individual PNGs fetched via HTTP range requests
+#   path pattern: {experiment}/Plate{plate}/{well}_s{site}_w{channel}.png
+#
+# Run `pixi run -e seg-cpu calibrate` before production segmentation to tune
+# diameters for these cell types.
+
+samples:
+  - experiment: HUVEC-1   # example; replace / extend with target experiments
+
+metadata_url: https://storage.googleapis.com/rxrx/rxrx1/rxrx1-metadata.zip
+images_zip_url: https://storage.googleapis.com/rxrx/rxrx1/rxrx1-images.zip
+
+# 6 channels in acquisition order (1-indexed as w1–w6 in the zip paths).
+channel_names:
+  - Hoechst      # w1 — DNA / nucleus
+  - ConA         # w2 — ER
+  - Phalloidin   # w3 — AGP / actin
+  - Syto14       # w4 — RNA
+  - MitoTracker  # w5 — Mitochondria
+  - WGA          # w6 — AGP / plasma membrane
+
+segmentation:
+  model: cpsam
+  # Hoechst (index 0) for nucleus; Phalloidin + Hoechst for cell body.
+  channels_for_nucleus: [0]
+  channels_for_cell:    [2, 0]
+  default_diameters:
+    nucleus: 21
+    cytosol: 53
+  per_source_diameters: {}   # filled by `pixi run calibrate`

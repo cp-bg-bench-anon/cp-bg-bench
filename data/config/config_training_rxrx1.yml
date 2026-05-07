@@ -1,0 +1,59 @@
+# Global config for the rxrx1 HEPG2 siRNA training set (rxrx1_training.yml).
+# 1,108 treatment siRNAs + 30 pos-ctrl siRNAs (subsampled) + EMPTY neg ctrl,
+# across 11 HEPG2 experiments × 4 plates × 308 wells × 2 sites.
+# Rule E caps at target_cells=100 per (sirna × experiment); EMPTY bypasses
+# the cap as DMSO-analogue per-plate anchor.
+# Outputs land under <paths.root>/rxrx1_training/.
+data_source: rxrx1
+data_source_config: rxrx1_training.yml
+max_fovs_per_well: 2  # rxrx1 has exactly 2 sites/well — effectively no-op
+
+paths:
+  # Update to your local data root (e.g. export CP_BG_BENCH_ROOT=/path/to/data).
+  root: ${DATA_ROOT}
+
+selection:
+  strategy: uniform_per_compound_source
+  target_cells: 100
+  control_labels: ["EMPTY"]  # treat rxrx1 negative controls as DMSO anchors
+  random_seed: 42
+
+quality_filter:
+  enabled: true
+  quantiles: [0.025, 0.975]
+  fields: [nuc_area, cyto_area, nuc_cyto_ratio]
+
+crops:
+  patch_size: 150
+  image_size: 224
+  normalization:
+    scheme: per_fov_percentile
+    low: 0.001
+    high: 0.999
+
+patching:
+  patch_size_resized: 22
+  pad_resized: 7
+
+sharding:
+  parquet_rows_per_shard: 10000
+  hf_rows_per_shard: 25000
+  hf_max_shards: 64
+  snakemake_batch_size: 250
+
+compute:
+  dask:
+    n_workers: 16
+    threads_per_worker: 1
+  gpu:
+    # 380 × 70 MB = 26,600 MB/job → floor(80,000 / 26,600) = 3 concurrent on
+    # both A100-80GB and H100-80GB. On A100 (compute-saturated at 2 jobs) this
+    # is neutral; on H100 (~4× compute) the 3rd job adds genuine parallelism.
+    cellpose_vram_per_sample_mb: 70
+    resize_vram_mb_max: 32000
+    seg_fov_batch_size: 380
+
+calibrate:
+  fovs_per_source: 12
+  random_seed: 42
+  min_success_fraction: 0.7
