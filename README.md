@@ -36,7 +36,6 @@ notebook `003_perturbation_recall.ipynb`.
 ## Reproducibility notes
 
 The aggregated well-level embeddings (`evals/data/*.h5ad`, ~16 GB) and the 36
-trained encoder checkpoints are not committed; download URLs and instructions
-are in the manuscript's data-availability statement. Once those are in place,
+trained encoder checkpoints are available at https://huggingface.co/datasets/cp-bg-bench-anon/reproducibility. Once those are in place,
 the four combined notebooks reproduce every manuscript figure end-to-end from
 committed CSVs and h5ads in seconds-to-minutes.
